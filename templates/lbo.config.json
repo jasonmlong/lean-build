@@ -1,0 +1,56 @@
+{
+  "_help": "Edit for this project. Paths are globs from the repo root: ** crosses folders, * stays in one. Delete the suites you do not have.",
+  "base_branch": "main",
+  "default_level": 2,
+  "size_limit_lines": 600,
+  "module_depth": 2,
+  "min_level_paths": {"backend/**": 2},
+  "max_fraction": 0.4,
+  "max_files": 80,
+
+  "level_labels": {
+    "chore": 0, "copy": 0, "layout": 0, "config": 0, "deps": 0,
+    "ui": 1, "bounded": 1,
+    "backend": 2, "feature": 2, "cross-cutting": 2,
+    "security": 3, "auth": 3, "money": 3, "concurrency": 3, "migration": 3, "architectural": 3
+  },
+
+  "sensitive_paths": [
+    "**/auth/**", "**/*auth*", "**/migrations/**", "**/*billing*", "**/*payment*",
+    "**/*tenant*", "**/*permission*", "**/*lock*"
+  ],
+
+  "prod_hosts": [],
+  "_prod_hosts_help": "Hostnames of live systems, e.g. app.example.com. Test files that name one are never selected, and the script warns about them before a full run. Fill this in before the first full run.",
+
+  "forced_full": [
+    "**/package-lock.json", "**/pnpm-lock.yaml", "**/requirements*.txt", "**/pyproject.toml",
+    "**/Dockerfile*", "**/docker-compose*.yml", ".lbo/config.json"
+  ],
+
+  "lint": [],
+  "lint_full": [],
+
+  "suites": {
+    "backend": {
+      "cwd": "backend",
+      "paths": ["backend/**"],
+      "test_globs": ["backend/tests/**/test_*.py"],
+      "forced_full": ["backend/**/conftest.py", "backend/migrations/**", "backend/app/models/**", "backend/app/core/config*"],
+      "always_run": [],
+      "full": "python -m pytest -q",
+      "focused": "python -m pytest -q {files}",
+      "related": null
+    },
+    "frontend": {
+      "cwd": "frontend",
+      "paths": ["frontend/src/**"],
+      "test_globs": ["frontend/src/**/*.test.ts", "frontend/src/**/*.test.tsx"],
+      "forced_full": ["frontend/vitest.config.*", "frontend/tsconfig*.json"],
+      "always_run": [],
+      "full": "npx vitest run",
+      "focused": "npx vitest run {files}",
+      "related": "npx vitest related --run {files}"
+    }
+  }
+}
