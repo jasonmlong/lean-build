@@ -77,7 +77,7 @@ LBO level --labels LABELS [--refuted]
 
 The diff can only raise the level: sensitive paths force level 3, a large diff or a refuted assumption adds one. Every epic with two or more lanes also gets a review of the merge itself.
 
-**The standing rule, which the levels serve and never weaken:** after each epic, run an iterative adversarial review with two independent reviewers (Codex and Gemini; see section 6) that checks for general issues, security, code quality and maintainability, and whether a senior developer would be impressed with the code. Do not proceed unless a senior developer would be impressed. If the same bug or the same kind of bug comes back for more than two rounds in a row, ask the reviewer that raised it how to fix it. Recurring issues are usually architectural, so do things the right way, not just the fast way, unless told to do it the fast way.
+**The standing rule, which the levels serve and never weaken:** after each epic, run an iterative adversarial review with two independent reviewers (Codex, and z.ai when it has credits; see section 6) that checks for general issues, security, code quality and maintainability, and whether a senior developer would be impressed with the code. Do not proceed unless a senior developer would be impressed. If the same bug or the same kind of bug comes back for more than two rounds in a row, ask the reviewer that raised it how to fix it. Recurring issues are usually architectural, so do things the right way, not just the fast way, unless told to do it the fast way.
 
 So: every epic gets the review with both reviewers on its merged diff, whatever the levels of its lanes. The level decides how much review a lane gets on the way there.
 
@@ -117,34 +117,19 @@ What each kind of finding becomes:
 | Hard coding: security, money, concurrency, migrations, cross-cutting | Claude subagent | |
 | Bounded coding with tests given | The project's bulk coder if one is configured, else a cheaper Claude model | A vendor never reviews its own code |
 | Assumption check, review | Codex | Its quota is the one to protect |
-| Second reviewer at level 3 and on every epic review | Gemini (below) | Include test files in its prompt. It replaced z.ai on 22 November 2026, when z.ai ran out of credits |
-| Cheap single-reviewer round at level 1, or when Codex's quota is out | Gemini, cheapest model that fits | Still a different vendor from the coder |
+| Second reviewer at level 3 and on every epic review | z.ai, when it has credits | Include test files in its prompt. Without z.ai credits, Codex reviews alone, and the epic review closes with a fresh full Codex pass (prompt 7) |
+| Cheap single-reviewer round at level 1 | Codex | Still a different vendor from the coder |
 
-Use the reviewer commands recorded in the project's CLAUDE.md. Where a project's CLAUDE.md still names z.ai as the second reviewer, use Gemini instead. Treat a quota error as "pause this lane, continue the others" and say which plan stalled.
+**Never use Gemini** (Jason, 22 November 2026: too expensive). It briefly replaced z.ai that day; that is reversed. The key folder `C:\Users\jason\Documents\GitHub\gemini-key\` stays on disk, unused.
 
-### Calling Gemini
+Use the reviewer commands recorded in the project's CLAUDE.md. Treat a quota error as "pause this lane, continue the others" and say which plan stalled.
 
-Everything about it lives in `C:\Users\jason\Documents\GitHub\gemini-key\`. **Read `HOW-TO-CALL-GEMINI.txt` there before the first call in a session**: it has the flags, the environment, the models and troubleshooting.
+### Calling Codex
 
-- **The wrapper:** `bash /c/Users/jason/Documents/GitHub/gemini-key/gemini-review.sh <worktree> <prompt file> <out file> <model>`.
-  - It runs Gemini read-only (`--approval-mode plan`) from the worktree.
-  - It saves the JSON answer to the out file, the raw response to `<out>.raw.json`, and errors to `<out>.log`.
-  - Prompt 5 works with it as it is, since it already asks for JSON.
-- **Log the round** with `LBO finding import <out file> --round N --reviewer gemini`.
-- **The key** is `.env.gemini-api` in that folder. The wrapper reads it. Never print it, log it, copy it or put it in a prompt.
-- **Choose the model by the risk of the code, and keep costs down** (Jason, 22 November 2026). The full table with prices is the "WHICH MODEL TO USE" section of the how-to. In short:
-  - `gemini-3-flash-preview` first, for wording, layout, docs and test-only changes, and for checking that a fix landed.
-  - `gemini-4-hydrogen` for front-end logic, or when a Flash round came back shallow.
-  - `gemini-4-carbon`, the most capable reasoning model, only for:
-    - auth, tokens and sessions;
-    - money;
-    - migrations;
-    - concurrency;
-    - security;
-    - an epic's final round.
-  - Carbon's price doubles on 1 December 2026. Until then it can be used a little more freely.
-- **Always pass the model.** The wrapper's built-in default (`gemini-3.1-pro-preview`) predates the Gemini 4 models and is not the one to use.
-- **Do not re-run a round on a bigger model** for a second opinion. Escalate one step only when the code's risk calls for it.
+- **The CLI, read-only, from the worktree:** `codex exec -s read-only -o <answer file> - < <prompt file>`. Prompt 5 works with it as it is, since it asks for JSON.
+- **Not the Codex MCP server:** it has failed to connect in Claude Code sessions. Use the CLI.
+- **Log the round** with `LBO finding import <answer file> --round N --reviewer codex`.
+- **Ask for the senior-developer verdict outright** (impressed, indifferent or annoyed, and why) and treat "annoyed" as a finding.
 
 ## 7. Survive resets, and close out
 
